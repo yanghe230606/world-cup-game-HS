@@ -329,10 +329,10 @@ const onboardGestureBtn = document.querySelector("#onboardGestureBtn");
 const onboardClickBtn = document.querySelector("#onboardClickBtn");
 const cameraPanel = document.querySelector(".camera-panel");
 
-const MEDIAPIPE_VERSION = "0.10.18";
-const MEDIAPIPE_BUNDLE = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/vision_bundle.mjs`;
-const MEDIAPIPE_WASM = `https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@${MEDIAPIPE_VERSION}/wasm`;
-const HAND_MODEL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/latest/hand_landmarker.task";
+// MediaPipe 资源全部走本地，避免部署环境 CDN/Google 被墙
+const MEDIAPIPE_BUNDLE = "/mediapipe/vision_bundle.mjs";
+const MEDIAPIPE_WASM = "/mediapipe/wasm";
+const HAND_MODEL = "/mediapipe/hand_landmarker.task";
 const keeperFrames = {
   block: "../image/figure/%E5%AE%88%E9%97%A8%E5%91%98/%E6%AD%A3%E9%9D%A2%E5%B0%81%E5%A0%B5%E5%BC%8F.png",
   sideDive: "../image/figure/%E5%AE%88%E9%97%A8%E5%91%98/%E5%8D%95%E4%BE%A7%E6%89%91%E6%95%91%E5%BC%8F.png",
@@ -1306,7 +1306,7 @@ async function loadHandModel() {
     return handLandmarker;
   } catch (error) {
     usingModel = false;
-    gestureStatus.textContent = "Model loading failed. Falling back to basic motion tracking.";
+    console.warn("[MediaPipe] load error:", error);
     return null;
   } finally {
     modelLoading = false;
@@ -1316,17 +1316,21 @@ async function loadHandModel() {
 function runHandTracking() {
   if (!cameraStream || !handLandmarker) return;
 
-  if (cameraFeed.readyState >= 2 && cameraFeed.currentTime !== lastVideoTime) {
+  // 去掉 currentTime !== lastVideoTime 的限制，强制每帧都检测
+  if (cameraFeed.readyState >= 2) {
     lastVideoTime = cameraFeed.currentTime;
-    const results = handLandmarker.detectForVideo(cameraFeed, performance.now());
-    const hand = results.landmarks?.[0];
-
-    if (hand) {
-      const palm = hand[9] || hand[0];
-      handleGestureAim(palm.x, palm.y, isFist(hand));
-    } else {
-      gestureStatus.textContent = "Place your hand inside the camera view.";
-      fistReady = true;
+    try {
+      const results = handLandmarker.detectForVideo(cameraFeed, performance.now());
+      const hand = results.landmarks?.[0];
+      if (hand) {
+        const palm = hand[9] || hand[0];
+        handleGestureAim(palm.x, palm.y, isFist(hand));
+      } else {
+        gestureStatus.textContent = "Show your hand in camera view";
+        fistReady = true;
+      }
+    } catch (e) {
+      // ignore per-frame errors
     }
   }
 
@@ -1334,7 +1338,7 @@ function runHandTracking() {
 }
 
 function trackMotion() {
-  if (!cameraStream || cameraFeed.readyState < 2) return;
+  if (!cameraStream) return;
 
   const context = motionCanvas.getContext("2d", { willReadFrequently: true });
   context.save();
@@ -1370,20 +1374,34 @@ function trackMotion() {
 
   previousFrame = frame;
 
-  if (total < 260000) {
-    gestureStatus.textContent = "Open palm: move aim. Make a fist to shoot.";
+  // 有足够运动量 → 手掌移动，更新瞄准
+  if (total > 8000) {
+    fistFrameCount = 0;
     fistReady = true;
+    const x = sumX / total / motionCanvas.width;
+    const y = sumY / total / motionCanvas.height;
+    updateAim(x, y);
+    gestureStatus.textContent = "Open palm: move aim. Make a fist to shoot.";
     return;
   }
 
-  const x = sumX / total / motionCanvas.width;
-  const y = sumY / total / motionCanvas.height;
-  updateAim(x, y);
-  gestureStatus.textContent = "Open palm: move aim. Make a fist to shoot.";
+  // 运动量极小 → 静止，累积帧数判断握拳
+  fistFrameCount += 1;
+  if (fistFrameCount >= 6 && fistReady && !shooting && gameState === "penalty") {
+    const now = performance.now();
+    if (now - lastGestureShotAt > 900) {
+      fistReady = false;
+      fistFrameCount = 0;
+      lastGestureShotAt = now;
+      gestureStatus.textContent = "Fist detected. Shooting.";
+      shoot("gesture");
+    }
+  } else {
+    gestureStatus.textContent = "Open palm: move aim. Make a fist to shoot.";
+  }
 }
 
 async function enableCamera() {
-  if (isTouchDevice) return;
   if (!navigator.mediaDevices?.getUserMedia) {
     gestureStatus.textContent = "This browser does not support the camera API.";
     return;
@@ -1393,20 +1411,23 @@ async function enableCamera() {
     hideGestureCoach();
     cameraStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
     cameraFeed.srcObject = cameraStream;
+    await cameraFeed.play().catch(() => {});
     cameraView.classList.add("has-video");
     cameraButton.textContent = "ON";
     gestureStatus.textContent = "Camera is on. Open palm to aim, fist to shoot.";
 
-    const model = await loadHandModel();
-    if (model) {
-      if (motionTimer) clearInterval(motionTimer);
-      if (handLoopId) cancelAnimationFrame(handLoopId);
-      runHandTracking();
-      return;
-    }
-
+    // 先立即启动 motion fallback，保证摄像头一开就能控制
     if (motionTimer) clearInterval(motionTimer);
-    motionTimer = setInterval(trackMotion, 120);
+    if (handLoopId) cancelAnimationFrame(handLoopId);
+    motionTimer = setInterval(trackMotion, 80);
+
+    // 后台异步加载 MediaPipe 模型，成功后升级为精准追踪
+    loadHandModel().then((model) => {
+      if (!model || !cameraStream) return;
+      clearInterval(motionTimer);
+      motionTimer = null;
+      runHandTracking();
+    });
   } catch (error) {
     cameraButton.textContent = "!";
     gestureStatus.textContent = "Camera is not enabled. You can keep aiming with the mouse.";
