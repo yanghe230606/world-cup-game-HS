@@ -6,17 +6,28 @@ const nextConfig = {
     PROJECT_ID: process.env.HAPPYSEEDS_PROJECT_ID ?? '',
     REACTUS_BASE_URL: process.env.REACTUS_BASE_URL ?? '',
   },
-  // 禁用 Next.js 16 自动生成 favicon.ico/icon.png App Router 路由
-  // 避免覆盖 page.tsx 和 api/ 路由
-  experimental: {
-    disableOptimizedLoading: false,
-  },
-  async rewrites() {
-    return {
-      beforeFiles: [
-        { source: '/favicon.ico', destination: '/game-favicon.ico' },
-      ],
-    };
+  async headers() {
+    const wasmHeaders = [
+      {
+        key: 'Content-Security-Policy',
+        value: [
+          "default-src 'self' blob: data:",
+          "script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' blob:",
+          "worker-src 'self' blob:",
+          "style-src 'self' 'unsafe-inline'",
+          "img-src 'self' data: blob: https:",
+          "media-src 'self' blob: mediastream:",
+          "connect-src 'self' blob: data: https:",
+          "frame-src 'self'",
+        ].join('; '),
+      },
+      { key: 'Cross-Origin-Embedder-Policy', value: 'require-corp' },
+      { key: 'Cross-Origin-Opener-Policy',   value: 'same-origin'  },
+      { key: 'Cross-Origin-Resource-Policy', value: 'cross-origin' },
+    ];
+    return [
+      { source: '/(.*)', headers: wasmHeaders },
+    ];
   },
 };
 
