@@ -263,6 +263,7 @@ let shotTimerId = null;
 let shotTimeLeft = 30;
 let fistFrameCount = 0;
 let lastGestureShotAt = 0;
+let aimStillSince = null;
 let walkoutTimers = [];
 let bgmFadeFrameId = null;
 const isTouchDevice = window.matchMedia("(pointer: coarse)").matches;
@@ -1386,13 +1387,36 @@ function trackMotion() {
 
   previousFrame = frame;
 
-  // fallback 只做瞄准，不做射门（射门需要 MediaPipe 握拳识别）
-  if (total > 8000) {
+  const STILL_THRESHOLD = 6000;   // 低于此值视为静止
+  const SHOOT_HOLD_MS   = 1500;   // 静止超过 1.5s 触发射门
+
+  if (total > STILL_THRESHOLD) {
+    // 手掌在移动 → 更新瞄准，重置静止计时
     const x = sumX / total / motionCanvas.width;
     const y = sumY / total / motionCanvas.height;
     updateAim(x, y);
+    aimStillSince = null;
+    gestureStatus.textContent = "Palm detected — moving aim…";
+  } else {
+    // 手掌静止
+    const now = performance.now();
+    if (!aimStillSince) aimStillSince = now;
+    const held = now - aimStillSince;
+    const remaining = Math.max(0, Math.ceil((SHOOT_HOLD_MS - held) / 1000 * 10) / 10);
+
+    if (held >= SHOOT_HOLD_MS && fistReady && !shooting && gameState === "penalty") {
+      if (now - lastGestureShotAt > 900) {
+        fistReady = false;
+        aimStillSince = null;
+        lastGestureShotAt = now;
+        gestureStatus.textContent = "Shooting!";
+        shoot("gesture");
+        setTimeout(() => { fistReady = true; }, 1200);
+      }
+    } else {
+      gestureStatus.textContent = `Hold still to shoot… (${remaining}s)`;
+    }
   }
-  gestureStatus.textContent = "Model loading… palm moves aim. Fist available soon.";
 }
 
 async function enableCamera() {
