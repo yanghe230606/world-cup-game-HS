@@ -1,39 +1,16 @@
 import type { Metadata } from 'next';
-import Script from "next/script";
-import { Outfit, JetBrains_Mono } from 'next/font/google';
 import { HappySeedsWatermark } from '@/components/HappySeedsWatermark';
 import './globals.css';
-import jsonMetadata from '../../metadata.json';
 
-const outfit = Outfit({
-  subsets: ['latin'],
-  variable: '--font-outfit',
-});
+export const metadata: Metadata = {
+  title: 'Cheer Penalty Clash',
+  description: 'Cheer Penalty Clash is a World Cup penalty shootout game. Pick your team, aim, and shoot to score goals and top the fan power leaderboard!',
+  keywords: ['World Cup', 'penalty shootout', 'soccer game', 'football game', 'fan power', 'gesture control', '2026 World Cup'],
+};
 
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-mono',
-});
-
-export const metadata: Metadata = jsonMetadata;
-
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${outfit.variable} ${jetbrainsMono.variable}`}>
-      <head>
-        {process.env.NODE_ENV === 'production' && (
-          <Script
-            async
-            src={process.env.NEXT_PUBLIC_UMAMI_SCRIPT_URL}
-            data-website-id={process.env.NEXT_PUBLIC_UMAMI_WEBSITE_ID}
-          />
-        )}
-      </head>
-
+    <html lang="en">
       <body>
         {children}
         <HappySeedsWatermark />

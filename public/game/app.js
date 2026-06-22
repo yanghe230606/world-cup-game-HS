@@ -495,6 +495,7 @@ if (onboardGestureBtn) {
 if (onboardClickBtn) {
   onboardClickBtn.addEventListener("click", () => {
     hideOnboard();
+    addDanmaku("Click anywhere on the goal to shoot! 🎯", "goal", true);
   });
 }
 // ─────────────────────────────────────────────
@@ -969,7 +970,7 @@ function startWalkout() {
   queueWalkoutStep(6250, () => {
     setState("penalty");
     preparePenaltyRound();
-    addDanmaku("Penalty starts: 5 shots this round. Move your palm to aim, make a fist to shoot.");
+    addDanmaku("Penalty starts: 5 shots this round.");
   });
 }
 function stopKeeperMovement() {
@@ -1197,8 +1198,7 @@ function shoot(source = "manual") {
   const targetX = shotAim.x;
   const keeperDistance = Math.abs(targetX - keeperX);
   const keeperReach = 0.13 + shotCount * 0.012 + (shotCount >= 3 ? 0.045 + (shotCount - 3) * 0.025 : 0);
-  const wallCanBlock = shotAim.y > 0.38;
-  const wallHit = wallCanBlock && wallPlayers.some((wallPlayer) => Math.abs(targetX - wallPlayer.x) < wallPlayer.reach);
+  const wallHit = wallPlayers.some((wallPlayer) => Math.abs(targetX - wallPlayer.x) < wallPlayer.reach);
   const offTarget = shotAim.x < 0 || shotAim.x > 1 || shotAim.y < 0 || shotAim.y > 1;
   const isGoal = !offTarget && !wallHit && keeperDistance > keeperReach;
   striker.classList.add("kick");
@@ -1502,19 +1502,27 @@ loadSavedGestureHintPosition();
 renderAll();
 setState("start");
 
-// 页面加载时从后端拉取实时应援数据
-fetch("/api/support")
-  .then((r) => r.json())
-  .then(({ ok, data }) => {
-    if (!ok || !data) return;
-    data.forEach((row) => {
-      const team = teams.find((t) => t.id === row.id);
-      if (team) {
-        team.support = row.support;
-        team.goals   = row.goals;
-        team.votes   = row.votes;
-      }
-    });
-    renderLeaderboard();
-  })
-  .catch(() => {});
+// 从后端拉取最新应援数据并刷新排行榜
+function fetchSupportData() {
+  fetch("/api/support")
+    .then((r) => r.json())
+    .then(({ ok, data }) => {
+      if (!ok || !data) return;
+      data.forEach((row) => {
+        const team = teams.find((t) => t.id === row.id);
+        if (team) {
+          team.support = row.support;
+          team.goals   = row.goals;
+          team.votes   = row.votes;
+        }
+      });
+      renderLeaderboard();
+    })
+    .catch(() => {});
+}
+
+// 页面加载时拉取一次
+fetchSupportData();
+
+// 每 15s 轮询一次，保持排行榜实时更新
+setInterval(fetchSupportData, 15000);

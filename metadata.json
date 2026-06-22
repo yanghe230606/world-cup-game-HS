@@ -1,9 +1,29 @@
 {
-  "title": "soccer game",
-  "description": "The future of building is here. HappySeeds uses an agentic layer to bridge the gap between intent and code. High-fidelity UI, zero friction. Grow what you feel today.",
+  "title": "Cheer Penalty Clash",
+  "description": "Cheer Penalty Clash is a World Cup penalty shootout game. Pick your team, aim, and shoot to score goals and top the fan power leaderboard!",
   "keywords": [
-    "HappySeeds",
-    "VibeCoding",
-    "2D Game"
-  ]
+    "World Cup",
+    "penalty shootout",
+    "soccer game",
+    "football game",
+    "fan power",
+    "gesture control",
+    "2026 World Cup"
+  ],
+  "alternates": {
+    "canonical": "https://world-cup-game-hs.vercel.app"
+  },
+  "openGraph": {
+    "title": "Cheer Penalty Clash",
+    "description": "Cheer Penalty Clash is a World Cup penalty shootout game. Pick your team, aim, and shoot to score goals and top the fan power leaderboard!",
+    "url": "https://world-cup-game-hs.vercel.app",
+    "siteName": "Cheer Penalty Clash",
+    "locale": "en_US",
+    "type": "website"
+  },
+  "twitter": {
+    "card": "summary",
+    "title": "Cheer Penalty Clash",
+    "description": "Cheer Penalty Clash is a World Cup penalty shootout game. Pick your team, aim, and shoot to score goals and top the fan power leaderboard!"
+  }
 }
