@@ -1285,28 +1285,35 @@ function handleGestureAim(x, y, fistClosed) {
 async function loadHandModel() {
   if (handLandmarker || modelLoading) return handLandmarker;
   modelLoading = true;
-  gestureStatus.textContent = "Loading the Google MediaPipe gesture model...";
+  console.log("[MP] start loading...");
 
   try {
+    console.log("[MP] importing bundle from", MEDIAPIPE_BUNDLE);
     const { HandLandmarker, FilesetResolver } = await import(MEDIAPIPE_BUNDLE);
+    console.log("[MP] bundle loaded, loading wasm from", MEDIAPIPE_WASM);
     const vision = await FilesetResolver.forVisionTasks(MEDIAPIPE_WASM);
-    handLandmarker = await HandLandmarker.createFromOptions(vision, {
-      baseOptions: {
-        modelAssetPath: HAND_MODEL,
-        delegate: "GPU",
-      },
-      runningMode: "VIDEO",
-      numHands: 1,
-      minHandDetectionConfidence: 0.55,
-      minHandPresenceConfidence: 0.55,
-      minTrackingConfidence: 0.5,
-    });
+    console.log("[MP] wasm ready, creating landmarker...");
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("timeout")), 15000)
+    );
+    handLandmarker = await Promise.race([
+      HandLandmarker.createFromOptions(vision, {
+        baseOptions: { modelAssetPath: HAND_MODEL, delegate: "CPU" },
+        runningMode: "VIDEO",
+        numHands: 1,
+        minHandDetectionConfidence: 0.5,
+        minHandPresenceConfidence: 0.5,
+        minTrackingConfidence: 0.5,
+      }),
+      timeoutPromise,
+    ]);
     usingModel = true;
-    gestureStatus.textContent = "Gesture control is ready. Open palm to aim, fist to shoot.";
+    console.log("[MP] ✅ model ready!");
+    gestureStatus.textContent = "Gesture ready! Palm=aim, Fist=shoot.";
     return handLandmarker;
   } catch (error) {
     usingModel = false;
-    console.warn("[MediaPipe] load error:", error);
+    console.error("[MP] ❌ error:", error);
     return null;
   } finally {
     modelLoading = false;
@@ -1339,6 +1346,11 @@ function runHandTracking() {
 
 function trackMotion() {
   if (!cameraStream) return;
+  // 若已切换为 MediaPipe 精准模式，停止 motion fallback
+  if (handLandmarker) return;
+  motionTimer = requestAnimationFrame(trackMotion);
+
+  if (cameraFeed.readyState < 2 || cameraFeed.paused) return;
 
   const context = motionCanvas.getContext("2d", { willReadFrequently: true });
   context.save();
@@ -1374,31 +1386,13 @@ function trackMotion() {
 
   previousFrame = frame;
 
-  // 有足够运动量 → 手掌移动，更新瞄准
+  // fallback 只做瞄准，不做射门（射门需要 MediaPipe 握拳识别）
   if (total > 8000) {
-    fistFrameCount = 0;
-    fistReady = true;
     const x = sumX / total / motionCanvas.width;
     const y = sumY / total / motionCanvas.height;
     updateAim(x, y);
-    gestureStatus.textContent = "Open palm: move aim. Make a fist to shoot.";
-    return;
   }
-
-  // 运动量极小 → 静止，累积帧数判断握拳
-  fistFrameCount += 1;
-  if (fistFrameCount >= 6 && fistReady && !shooting && gameState === "penalty") {
-    const now = performance.now();
-    if (now - lastGestureShotAt > 900) {
-      fistReady = false;
-      fistFrameCount = 0;
-      lastGestureShotAt = now;
-      gestureStatus.textContent = "Fist detected. Shooting.";
-      shoot("gesture");
-    }
-  } else {
-    gestureStatus.textContent = "Open palm: move aim. Make a fist to shoot.";
-  }
+  gestureStatus.textContent = "Model loading… palm moves aim. Fist available soon.";
 }
 
 async function enableCamera() {
@@ -1416,15 +1410,15 @@ async function enableCamera() {
     cameraButton.textContent = "ON";
     gestureStatus.textContent = "Camera is on. Open palm to aim, fist to shoot.";
 
-    // 先立即启动 motion fallback，保证摄像头一开就能控制
-    if (motionTimer) clearInterval(motionTimer);
+    // 立即启动 rAF 驱动的 motion fallback
+    if (motionTimer) cancelAnimationFrame(motionTimer);
     if (handLoopId) cancelAnimationFrame(handLoopId);
-    motionTimer = setInterval(trackMotion, 80);
+    motionTimer = requestAnimationFrame(trackMotion);
 
-    // 后台异步加载 MediaPipe 模型，成功后升级为精准追踪
+    // 后台异步加载 MediaPipe，成功后自动接管
     loadHandModel().then((model) => {
       if (!model || !cameraStream) return;
-      clearInterval(motionTimer);
+      if (motionTimer) cancelAnimationFrame(motionTimer);
       motionTimer = null;
       runHandTracking();
     });
@@ -1507,7 +1501,11 @@ targetZoneButtons.forEach((button) => {
 });
 
 shootButton.addEventListener("click", shoot);
-cameraButton.addEventListener("click", enableCamera);
+cameraButton.addEventListener("click", () => {
+  console.log("[CAM] button clicked, calling enableCamera");
+  enableCamera();
+});
+console.log("[APP] app.js loaded, cameraButton=", cameraButton);
 window.addEventListener("keydown", (event) => {
   if (event.key === " ") {
     event.preventDefault();
