@@ -334,14 +334,14 @@ const MEDIAPIPE_BUNDLE = "/mediapipe/vision_bundle.mjs";
 const MEDIAPIPE_WASM = "/mediapipe/wasm";
 const HAND_MODEL = "/mediapipe/hand_landmarker.task";
 const keeperFrames = {
-  block: "../image/figure/%E5%AE%88%E9%97%A8%E5%91%98/%E6%AD%A3%E9%9D%A2%E5%B0%81%E5%A0%B5%E5%BC%8F.png",
-  sideDive: "../image/figure/%E5%AE%88%E9%97%A8%E5%91%98/%E5%8D%95%E4%BE%A7%E6%89%91%E6%95%91%E5%BC%8F.png",
-  highCatch: "../image/figure/%E5%AE%88%E9%97%A8%E5%91%98/%E8%B5%B7%E8%B7%B3%E9%AB%98%E6%8E%A5%E5%BC%8F.png",
+  block: "/image/figure/%E5%AE%88%E9%97%A8%E5%91%98/%E6%AD%A3%E9%9D%A2%E5%B0%81%E5%A0%B5%E5%BC%8F.png",
+  sideDive: "/image/figure/%E5%AE%88%E9%97%A8%E5%91%98/%E5%8D%95%E4%BE%A7%E6%89%91%E6%95%91%E5%BC%8F.png",
+  highCatch: "/image/figure/%E5%AE%88%E9%97%A8%E5%91%98/%E8%B5%B7%E8%B7%B3%E9%AB%98%E6%8E%A5%E5%BC%8F.png",
 };
 const wallImages = [
-  "../image/figure/%E4%BA%BA%E5%A2%99/%E4%BA%BA%E5%A2%991.png",
-  "../image/figure/%E4%BA%BA%E5%A2%99/%E4%BA%BA%E5%A2%992.png",
-  "../image/figure/%E4%BA%BA%E5%A2%99/%E4%BA%BA%E5%A2%993.png",
+  "/image/figure/%E4%BA%BA%E5%A2%99/%E4%BA%BA%E5%A2%991.png",
+  "/image/figure/%E4%BA%BA%E5%A2%99/%E4%BA%BA%E5%A2%992.png",
+  "/image/figure/%E4%BA%BA%E5%A2%99/%E4%BA%BA%E5%A2%993.png",
 ];
 const keeperZoneActions = {
   leftTop: { image: keeperFrames.sideDive, className: "save-leftTop" },
@@ -370,9 +370,9 @@ const shotResultMessages = {
   SAVED: "What a save!",
   GOAL: "It's in!! Goal!",
 };
-const bgm = new Audio("../music/bgm/Ukulele Cardio.mp3");
-const goalSfx = new Audio("../music/Firefly_audio_stadium_crowd_cheering_loudly_after_a_goal,_soccer_variation2.wav");
-const countdownSfx = new Audio("../music/mixkit-race-countdown-1953.wav");
+const bgm = new Audio("/music/bgm/Ukulele Cardio.mp3");
+const goalSfx = new Audio("/music/Firefly_audio_stadium_crowd_cheering_loudly_after_a_goal,_soccer_variation2.wav");
+const countdownSfx = new Audio("/music/mixkit-race-countdown-1953.wav");
 const BGM_VOLUME = 0.42;
 const GOAL_SFX_VOLUME = 0.86;
 const COUNTDOWN_SFX_VOLUME = 0.48;
@@ -385,8 +385,8 @@ const gestureHintVars = [
   "--gesture-arrow-top",
   "--gesture-arrow-rotate",
 ];
-const strikerIdleFrame = "../image/figure/%E5%88%9D%E5%A7%8B%E4%BA%BA%E7%89%A9/%E4%BA%BA%E8%AE%BE%E5%9B%BE_%E7%AB%99%E7%AB%8B%E8%83%8C%E5%BD%B1.png";
-const strikerKickFrame = "../image/figure/%E5%88%9D%E5%A7%8B%E4%BA%BA%E7%89%A9/%E8%A7%A6%E7%90%83.png";
+const strikerIdleFrame = "/image/figure/%E5%88%9D%E5%A7%8B%E4%BA%BA%E7%89%A9/%E4%BA%BA%E8%AE%BE%E5%9B%BE_%E7%AB%99%E7%AB%8B%E8%83%8C%E5%BD%B1.png";
+const strikerKickFrame = "/image/figure/%E5%88%9D%E5%A7%8B%E4%BA%BA%E7%89%A9/%E8%A7%A6%E7%90%83.png";
 
 bgm.loop = true;
 bgm.volume = 0;
