@@ -1,5 +1,9 @@
 {
-  "title": "Vibe Game - 2D Template",
-  "description": "A premium 2D game template built with Next.js and Phaser.",
-  "keywords": [ "HappySeeds", "VibeCoding", "2D Game" ]
+  "title": "soccer game",
+  "description": "The future of building is here. HappySeeds uses an agentic layer to bridge the gap between intent and code. High-fidelity UI, zero friction. Grow what you feel today.",
+  "keywords": [
+    "HappySeeds",
+    "VibeCoding",
+    "2D Game"
+  ]
 }

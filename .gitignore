@@ -32,3 +32,12 @@ dist-ssr
 .cursorrules
 .examples
 .skills
+# env & secrets
+.env
+.env.local
+.env*.local
+.env.production
+
+# project meta & attachments
+.project
+attachements/

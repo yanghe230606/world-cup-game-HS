@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cheer Penalty Clash</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <div class="rotate-prompt">
+      <div class="rotate-prompt-icon"></div>
+      <p>Rotate your device to landscape for the best experience</p>
+    </div>
+    <main class="app-shell">
+      <section id="gameStage" class="game-stage is-start" aria-label="World Cup cheer penalty game">
+        <div class="stadium-bg" aria-hidden="true"></div>
+        <div class="stadium-vignette" aria-hidden="true"></div>
+        <div class="stadium-lights" aria-hidden="true"></div>
+        <div id="flashbulbLayer" class="flashbulb-layer" aria-hidden="true"></div>
+
+        <section id="startScreen" class="screen-layer start-screen">
+          <div class="start-year" aria-hidden="true">2026</div>
+          <div class="start-content">
+            <h1><span>Cheer</span><span>Penalty Clash</span></h1>
+            <ul class="start-points" aria-label="Game highlights">
+              <li><img src="../image/start-screen/flag.svg" alt="" draggable="false" />Play for your team.</li>
+              <li><img src="../image/start-screen/football.svg" alt="" draggable="false" />Score goals.</li>
+              <li><img src="../image/start-screen/trophy.svg" alt="" draggable="false" />Rise on the leaderboard.</li>
+            </ul>
+            <button id="startButton" class="mega-button start-button-art" type="button">
+              <img class="start-button-ball" src="../image/start-screen/%E9%80%8F%E6%98%8E.png" alt="" draggable="false" />
+              <span>Start Game</span>
+            </button>
+          </div>
+          <img class="start-player" src="../image/start-screen/%E7%90%83%E5%91%98.png" alt="" draggable="false" />
+        </section>
+
+        <section id="teamScreen" class="screen-layer team-screen hidden">
+          <div class="team-shell">
+            <header class="team-hero">
+              <div>
+                <h2>Choose Your Team</h2>
+              </div>
+              <button id="confirmTeamButton" class="mega-button small" type="button">Enter Stadium</button>
+            </header>
+
+            <div class="team-layout">
+              <section class="panel select-panel" aria-label="Team list">
+                <div class="panel-title">48 Teams</div>
+                <div id="teamGrid" class="team-grid"></div>
+              </section>
+
+              <aside class="panel select-board" aria-label="Current team">
+                <div class="selected-card">
+                  <img id="selectedFlag" class="flag-img large" alt="" />
+                  <div>
+                    <span>Current Team</span>
+                    <strong id="selectedTeamName">Argentina</strong>
+                  </div>
+                </div>
+                <div class="player-art-card" aria-hidden="true">
+                  <img src="../image/figure/%E4%BA%BA%E8%AE%BE%E5%9B%BE_%E6%8A%B1%E7%90%83%E6%AD%A3%E9%9D%A2.png" alt="" />
+                  <img src="../image/figure/%E4%BA%BA%E8%AE%BE%E5%9B%BE_%E6%8A%B1%E7%90%83%E6%97%A0%E5%8F%B7%E7%A0%81%E8%83%8C%E5%BD%B1.png" alt="" />
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <section id="resultScreen" class="screen-layer result-screen hidden" aria-live="polite">
+          <div id="resultShell" class="result-shell">
+            <header class="result-head">
+              <img class="result-banner" src="../image/celebrate/%E6%A8%AA%E5%B9%85.png" alt="" draggable="false" />
+              <img class="result-celebrator" src="../image/celebrate/%E4%BA%BA%E8%AE%BE%E5%9B%BE_%E5%BA%86%E7%A5%9D%E5%8A%A8%E4%BD%9C.png" alt="" draggable="false" />
+              <div class="result-banner-copy">
+                <h2 id="resultTitle">ARGENTINA</h2>
+              </div>
+              <p id="resultSummary" class="result-thanks">THANK YOU FOR YOUR SUPPORT!</p>
+              <div class="result-stats" aria-label="Round score">
+                <div>
+                  <strong><span id="resultGoals">3</span><span class="result-stat-small">/5</span></strong>
+                  <span>GOALS SCORED</span>
+                </div>
+                <div class="result-stat-divider" aria-hidden="true"></div>
+                <div>
+                  <strong><span class="result-stat-plus">+</span><span id="resultFanPower">15</span></strong>
+                  <span>FAN POWER</span>
+                </div>
+              </div>
+              <div class="result-actions">
+                <button id="retryButton" class="result-button result-button-gold" type="button">Play Again</button>
+                <button id="changeTeamButton" class="result-button result-button-blue" type="button">Change Team</button>
+                <button id="viewRankingsButton" class="result-button result-button-dark" type="button">View Leaderboard</button>
+              </div>
+            </header>
+            <section class="panel result-board" aria-label="Full fan power board">
+              <button id="closeRankingsButton" class="rankings-close" type="button" aria-label="Back to result">×</button>
+              <div class="support-head">
+                <div>
+                  <div class="panel-title">Full Fan Board</div>
+                  <strong>Fan Power for 48 Teams</strong>
+                </div>
+                <div class="support-legend">Sorted live by fan power</div>
+              </div>
+              <div id="podiumList" class="podium-list"></div>
+              <ol id="resultLeaderboardList" class="support-grid"></ol>
+            </section>
+          </div>
+        </section>
+
+        <section id="walkoutScreen" class="screen-layer walkout-screen hidden" aria-live="polite">
+          <div id="walkoutCountdown" class="walkout-countdown"><span>Penalty shootout</span><span>starts soon</span></div>
+          <div class="walkout-copy">
+            <img id="walkoutFlag" class="flag-img" alt="" />
+            <strong id="walkoutTeam">Argentina</strong>
+          </div>
+        </section>
+
+        <!-- 手势引导卡片 -->
+        <div id="gestureOnboardOverlay" class="gesture-onboard-overlay">
+          <div class="gesture-onboard-card">
+            <div class="gesture-onboard-timer" id="onboardTimer">10</div>
+            <h3>Gesture Control!</h3>
+            <p><strong>Move your palm: aim.</strong> Make a fist: shoot. Gesture goals double fan power.</p>
+            <div class="gesture-onboard-actions">
+              <button id="onboardGestureBtn" class="onboard-btn onboard-btn-gesture">Use Gesture</button>
+              <button id="onboardClickBtn" class="onboard-btn onboard-btn-click">Tap to Shoot</button>
+            </div>
+          </div>
+        </div>
+
+        <header class="hud hud-score game-ui">
+          <div class="team-pill">
+            <img id="activeFlag" class="flag-img" alt="" />
+            <span id="activeTeamName">Argentina</span>
+          </div>
+          <div>
+            <span class="hud-label">Fan Power</span>
+            <strong id="activeSupport">0</strong>
+          </div>
+          <div>
+            <span class="hud-label">Streak</span>
+            <strong id="streak">0</strong>
+          </div>
+          <div id="shotTimer" class="shot-timer">
+            <span class="hud-label">Shot Clock</span>
+            <strong><span id="shotTimerValue">30</span>s</strong>
+          </div>
+        </header>
+
+        <aside class="leaderboard panel game-ui">
+          <div class="panel-title">Team Rankings</div>
+          <ol id="leaderboardList" class="leaderboard-list"></ol>
+        </aside>
+
+        <section class="camera-panel panel game-ui">
+          <div class="camera-head">
+            <span>Gesture Control</span>
+            <button id="cameraButton" class="icon-button" title="Open camera" type="button">●</button>
+          </div>
+          <div class="camera-view">
+            <video id="cameraFeed" autoplay playsinline muted></video>
+            <canvas id="motionCanvas" width="160" height="100"></canvas>
+            <div id="cameraFallback" class="camera-fallback">Open the camera to move the aim with your palm and shoot with a fist.</div>
+          </div>
+          <div id="gestureStatus" class="gesture-status">Aim with your palm, mouse, or touch.</div>
+        </section>
+
+        <div id="gestureCoach" class="gesture-coach game-ui" aria-live="polite">
+          <div class="gesture-coach-arrow" aria-hidden="true"></div>
+          <strong>Move your palm: aim.</strong>
+          <span>Make a fist: shoot. Gesture goals double fan power.</span>
+        </div>
+
+        <div id="danmakuLayer" class="danmaku-layer" aria-live="polite"></div>
+
+        <section class="goal-scene game-ui" aria-label="Penalty shooting area">
+          <div class="goal-frame">
+            <div class="net"></div>
+            <button class="target-zone zone-left-top" data-zone="leftTop" type="button"><span>Top Left</span></button>
+            <button class="target-zone zone-center-top" data-zone="centerTop" type="button"><span>Top Center</span></button>
+            <button class="target-zone zone-right-top" data-zone="rightTop" type="button"><span>Top Right</span></button>
+            <button class="target-zone zone-left-low" data-zone="leftLow" type="button"><span>Low Left</span></button>
+            <button class="target-zone zone-right-low" data-zone="rightLow" type="button"><span>Low Right</span></button>
+            <div id="aimReticle" class="aim-reticle"></div>
+            <div id="keeper" class="keeper">
+              <img
+                id="keeperFrame"
+                class="keeper-frame"
+                src="../image/figure/%E5%AE%88%E9%97%A8%E5%91%98/%E6%AD%A3%E9%9D%A2%E5%B0%81%E5%A0%B5%E5%BC%8F.png"
+                alt=""
+                draggable="false"
+              />
+            </div>
+          </div>
+          <svg id="aimCurve" class="aim-curve" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <path id="aimCurvePath" d="M58 88 Q50 54 50 18"></path>
+          </svg>
+          <div id="wallLine" class="wall-line" aria-hidden="true"></div>
+
+          <div id="resultBurst" class="result-burst" aria-live="polite"></div>
+
+          <div class="striker-wrap">
+            <div id="striker" class="striker">
+              <img
+                id="strikerFrame"
+                class="striker-frame"
+                src="../image/figure/%E5%88%9D%E5%A7%8B%E4%BA%BA%E7%89%A9/%E4%BA%BA%E8%AE%BE%E5%9B%BE_%E7%AB%99%E7%AB%8B%E8%83%8C%E5%BD%B1.png"
+                alt=""
+                draggable="false"
+              />
+            </div>
+            <div id="ball" class="ball"></div>
+          </div>
+        </section>
+
+        <nav class="control-dock panel game-ui" aria-label="Game controls">
+          <button id="shootButton" class="game-button shoot-button" type="button">Shoot</button>
+          <div class="aim-status">
+            <span>Chance</span>
+            <strong id="aimLabel">1 / 5</strong>
+          </div>
+        </nav>
+
+      </section>
+    </main>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
