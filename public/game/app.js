@@ -1388,7 +1388,7 @@ function trackMotion() {
   previousFrame = frame;
 
   const STILL_THRESHOLD = 6000;   // 低于此值视为静止
-  const SHOOT_HOLD_MS   = 1500;   // 静止超过 1.5s 触发射门
+  const SHOOT_HOLD_MS   = 1000;   // 静止超过 1s 触发射门
 
   if (total > STILL_THRESHOLD) {
     // 手掌在移动 → 更新瞄准，重置静止计时
