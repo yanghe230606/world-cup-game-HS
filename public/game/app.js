@@ -25,7 +25,7 @@ const teamNames = [
   "Tunisia",
   "Belgium",
   "Egypt",
-  "IR Iran",
+  "Iran",
   "New Zealand",
   "Spain",
   "Cabo Verde",
@@ -466,6 +466,7 @@ function hideOnboard() {
 
 function showOnboard() {
   if (onboardShown) return;
+  if (isTouchDevice) return;  // 移动端不弹手势引导
   onboardShown = true;
   let timeLeft = 10;
   onboardTimerEl.textContent = timeLeft;
@@ -1102,6 +1103,42 @@ function resetShot() {
   preparePenaltyRound();
 }
 
+// 移动端结算界面缩放：把 result-head 整体 scale 到屏幕宽度，完全还原 PC 布局
+function scaleResultHead() {
+  const head = document.querySelector(".result-head");
+  const screen = document.querySelector(".result-screen");
+  if (!head || !screen) return;
+
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  // PC 端 result-head 的自然宽度（未缩放时）
+  head.style.transform = "";
+  head.classList.remove("is-scaled");
+  screen.classList.remove("is-scaled-wrap");
+
+  const naturalW = head.scrollWidth;
+  const naturalH = head.scrollHeight;
+
+  // 只在小屏幕（宽度或高度不够）时才缩放
+  const scaleX = vw / naturalW;
+  const scaleY = vh / naturalH;
+  const scale  = Math.min(scaleX, scaleY, 1); // 不放大，只缩小
+
+  if (scale < 0.98) {
+    head.style.transform = `scale(${scale})`;
+    head.style.transformOrigin = "center center";
+    head.classList.add("is-scaled");
+    // 同步容器高度，居中对齐
+    screen.style.height = `${naturalH * scale}px`;
+    screen.style.display = "flex";
+    screen.style.alignItems = "center";
+    screen.style.justifyContent = "center";
+    screen.classList.add("is-scaled-wrap");
+  } else {
+    screen.style.height = "";
+  }
+}
+
 function showSettlement(targetTeam) {
   stopKeeperMovement();
   resultShell.classList.remove("show-board");
@@ -1120,6 +1157,8 @@ function showSettlement(targetTeam) {
   renderLeaderboard();
   renderActiveTeam();
   setState("result");
+  // 移动端结算缩放：等 DOM 渲染完再执行
+  requestAnimationFrame(() => requestAnimationFrame(scaleResultHead));
 }
 
 function setArcText(element, text, options = {}) {
@@ -1455,6 +1494,9 @@ window.addEventListener("keydown", (event) => {
   }
 });
 window.addEventListener("resize", renderAim);
+window.addEventListener("resize", () => {
+  if (gameState === "result") scaleResultHead();
+});
 
 loadSavedGestureHintPosition();
 renderAll();
