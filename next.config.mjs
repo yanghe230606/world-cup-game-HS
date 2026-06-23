@@ -1,3 +1,7 @@
+// 自动删除根目录 /app/，防止覆盖 src/app/ 路由
+import { existsSync, rmSync } from 'fs';
+if (existsSync('./app')) rmSync('./app', { recursive: true, force: true });
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: false,
