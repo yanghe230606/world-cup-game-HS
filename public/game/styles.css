@@ -254,7 +254,7 @@ button {
   display: grid;
   gap: 4px;
   margin: 22px 0 0;
-  font-size: clamp(52px, 6.9vw, 124px);
+  font-size: clamp(40px, 5.2vw, 92px);
   font-style: italic;
   font-weight: 950;
   line-height: 0.78;
