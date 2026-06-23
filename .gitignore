@@ -41,3 +41,4 @@ dist-ssr
 # project meta & attachments
 .project
 attachements/
+\n# Next.js 16 特殊文件干扰路由\n/app/

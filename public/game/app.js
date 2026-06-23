@@ -1200,7 +1200,10 @@ function shoot(source = "manual") {
   const keeperDistance = Math.abs(targetX - keeperX);
   const keeperReach = 0.13 + shotCount * 0.012 + (shotCount >= 3 ? 0.045 + (shotCount - 3) * 0.025 : 0);
   const wallHit = wallPlayers.some((wallPlayer) => Math.abs(targetX - wallPlayer.x) < wallPlayer.reach);
-  const offTarget = shotAim.x < 0 || shotAim.x > 1 || shotAim.y < 0 || shotAim.y > 1;
+  // 有效区域限定在门框内：x 0.02~0.98，y 0.02~0.95（底部门柱）
+  // 门框外（含边缘裁切外）判定为 offTarget
+  const offTarget = shotAim.x < 0.03 || shotAim.x > 0.97
+                 || shotAim.y < 0.03 || shotAim.y > 0.92;
   const isGoal = !offTarget && !wallHit && keeperDistance > keeperReach;
   striker.classList.add("kick");
   showKickFrame();   // 踢球时切换踢球图
@@ -1263,7 +1266,10 @@ function isFist(hand) {
 
 function handleGestureAim(x, y, fistClosed) {
   const now = performance.now();
-  updateAim(1 - x, y);
+  // 摄像头坐标 0~1 映射到门框有效范围 0.05~0.95
+  const mappedX = clamp(1 - x, 0.05, 0.95);
+  const mappedY = clamp(y, 0.05, 0.90);
+  updateAim(mappedX, mappedY);
 
   if (!fistClosed) {
     fistFrameCount = 0;
@@ -1391,10 +1397,10 @@ function trackMotion() {
   const SHOOT_HOLD_MS   = 1000;   // 静止超过 1s 触发射门
 
   if (total > STILL_THRESHOLD) {
-    // 手掌在移动 → 更新瞄准，重置静止计时
-    const x = sumX / total / motionCanvas.width;
-    const y = sumY / total / motionCanvas.height;
-    updateAim(x, y);
+    // 手掌在移动 → 映射到门框范围，重置静止计时
+    const rawX = sumX / total / motionCanvas.width;
+    const rawY = sumY / total / motionCanvas.height;
+    updateAim(clamp(rawX, 0.05, 0.95), clamp(rawY, 0.05, 0.90));
     aimStillSince = null;
     gestureStatus.textContent = "Palm detected — moving aim…";
   } else {
@@ -1497,18 +1503,21 @@ teamGrid.addEventListener("click", (event) => {
 goalScene.addEventListener("pointermove", (event) => {
   if (gameState !== "penalty" || shooting) return;
   const rect = goalFrame.getBoundingClientRect();
-  updateAim((event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height);
+  const x = (event.clientX - rect.left) / rect.width;
+  const y = (event.clientY - rect.top) / rect.height;
+  // 只在门框内才更新瞄准，门框外保持上次位置
+  if (x < 0 || x > 1 || y < 0 || y > 1) return;
+  updateAim(x, y);
 });
 
 goalScene.addEventListener("click", (event) => {
   if (gameState !== "penalty" || shooting) return;
-  // 点击球门永远更新瞄准位置
   const rect = goalFrame.getBoundingClientRect();
-  updateAim(
-    (event.clientX - rect.left) / rect.width,
-    (event.clientY - rect.top) / rect.height,
-  );
-  // 无论是否开启手势，点击球门都可以射击
+  const rawX = (event.clientX - rect.left) / rect.width;
+  const rawY = (event.clientY - rect.top) / rect.height;
+  // 点击门框外不射击
+  if (rawX < 0 || rawX > 1 || rawY < 0 || rawY > 1) return;
+  updateAim(rawX, rawY);
   shoot();
 });
 
